@@ -59,7 +59,7 @@ button{border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:point
 </head>
 <body>
 <header>
-<div><h1>East Izakaya — Menu Knowledge Test</h1><div class="sub">Torched & Poke Bowl menu • 15 questions per item</div></div>
+<div><h1>East Izakaya — Menu Knowledge Test</h1><div class="sub">Torched & Poke Bowl menu • 15 questions per quiz</div></div>
 <div><button id="startAll">Start Full Test</button> <button id="resetBtn" class="secondary">Reset</button></div>
 </header>
 <div class="container"><div class="layout">
@@ -162,12 +162,16 @@ let sessionQuestions=[],pos=0,score=0,answered=false,results=[],selectedItem=nul
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function buildQuestion(q){return {...q,choices:shuffle([q.correct,...shuffle(q.distractors).slice(0,3)])}}
-function renderItems(){document.getElementById('itemList').innerHTML=DATA.items.map((x,i)=>`<button class="itemBtn ${selectedItem===i?'active':''}" onclick="startItem(${i})">${esc(x.name)}<small>${x.price}${x.count?` • ${x.count} pieces`:''} • 15 questions</small></button>`).join('')}
+function renderItems(){document.getElementById('itemList').innerHTML=DATA.items.map((x,i)=>`<button class="itemBtn ${selectedItem===i?'active':''}" onclick="startItem(${i})">${esc(x.name)}<small>${x.price}${x.count?` • ${x.count} pieces`:''} • 15-question quiz</small></button>`).join('')}
 function startItem(i){selectedItem=i;score=0;pos=0;results=[];sessionQuestions=shuffle(DATA.questions.filter(q=>q.itemIndex===i)).map(buildQuestion);renderItems();renderQuestion()}
-function startAll(){selectedItem=null;score=0;pos=0;results=[];sessionQuestions=shuffle(DATA.questions).map(buildQuestion);renderQuestion()}
+function startAll(){
+ selectedItem=null;score=0;pos=0;results=[];
+ sessionQuestions=shuffle(DATA.questions).slice(0,15).map(buildQuestion);
+ renderQuestion();
+}
 function renderQuestion(){
 const main=document.getElementById('main');
-if(!sessionQuestions.length){main.innerHTML=`<div class="start"><h2>Ready to test your menu knowledge?</h2><p>Choose an individual item for a 15-question drill, or run the full 210-question test. Answer choices are randomized every time.</p><button onclick="startAll()">Start Full Test</button></div>`;return}
+if(!sessionQuestions.length){main.innerHTML=`<div class="start"><h2>Ready to test your menu knowledge?</h2><p>Choose an individual item for a 15-question drill, or take a 15-question randomized test covering the menu. Questions and answer choices are randomized every time.</p><button onclick="startAll()">Start Full Test</button></div>`;return}
 if(pos>=sessionQuestions.length){renderResults();return}
 const q=sessionQuestions[pos],pct=Math.round(pos/sessionQuestions.length*100);
 main.innerHTML=`<div class="topbar"><div><div class="questionNo">Question ${pos+1} of ${sessionQuestions.length}</div><div class="sub">${esc(q.item)}</div></div><div class="questionNo">${score} correct</div></div>
@@ -182,7 +186,7 @@ const fb=document.getElementById('feedback');fb.className='feedback '+(ok?'good'
 function nextQuestion(){if(!answered)return;pos++;answered=false;renderQuestion()}
 function prevQuestion(){if(pos===0)return;pos--;const last=results.pop();if(last&&last.ok)score--;answered=false;renderQuestion()}
 function renderResults(){const total=sessionQuestions.length,pct=Math.round(score/total*100),rows=results.map((r,i)=>`<div class="reviewRow"><div class="q">${i+1}. ${esc(r.q.question)}</div><div class="${r.ok?'rightText':'wrongText'}">${r.ok?'✓ Correct':'✗ Your answer: '+esc(r.chosen)}</div>${r.ok?'':'<div>Correct: <b>'+esc(r.q.correct)+'</b></div>'}</div>`).join('');
-document.getElementById('main').innerHTML=`<div class="results"><h2>Test Complete</h2><div class="bigScore">${score}/${total}</div><h3>${pct}%</h3><p>${selectedItem!==null?esc(DATA.items[selectedItem].name):'Full Menu Test'}</p><div class="controls"><button onclick="${selectedItem!==null?`startItem(${selectedItem})`:'startAll()'}">Retake</button><button class="secondary" onclick="renderQuestion()">Back</button></div><div class="review">${rows}</div></div>`}
+document.getElementById('main').innerHTML=`<div class="results"><h2>Test Complete</h2><div class="bigScore">${score}/${total}</div><h3>${pct}%</h3><p>${selectedItem!==null?esc(DATA.items[selectedItem].name):'15-Question Randomized Menu Test'}</p><div class="controls"><button onclick="${selectedItem!==null?`startItem(${selectedItem})`:'startAll()'}">Retake</button><button class="secondary" onclick="renderQuestion()">Back</button></div><div class="review">${rows}</div></div>`}
 document.getElementById('startAll').addEventListener('click', startAll);
 document.getElementById('resetBtn').addEventListener('click', ()=>{
  selectedItem=null;sessionQuestions=[];pos=0;score=0;results=[];renderItems();renderQuestion();
